@@ -169,6 +169,21 @@ object hof{
           case Option.Some(v) => f(v)
           case Option.None => Option.None
       }
+
+      def printIfAny(): Unit = this match {
+          case Option.Some(v) => println(v)
+          case Option.None => throw new Exception("There is no value")
+      }
+
+      def zip[TB >: T, B](opt: Option[B]): Option[(T, B)] = (this, opt) match {
+        case (Option.Some(a), Option.Some(b)) => Option.Some((a, b))
+        case _ => Option.None
+      }
+
+      def filter(f: T => Boolean): Option[T] = this match {
+        case Option.Some(v) if f(v) => Option.Some(v)
+        case _ => Option.None
+      }
   }
 
   object Option{
@@ -187,7 +202,6 @@ object hof{
    *
    * Реализовать метод zip, который будет создавать Option от пары значений из 2-х Option
    */
-
 
   /**
    *
