@@ -210,8 +210,68 @@ object hof{
    */
 
  }
+ sealed trait List[+T] {
 
- object list {
+   def ::[B >: T](item: B): List[B] = this match {
+     case List.Cons(_, _) => List.Cons(item, this)
+     case List.Nil => List.Cons(item, List.Nil)
+   }
+
+   def mkString(divider: String): String = this match {
+     case List.Cons(h, tail) => h + divider + tail.mkString(divider)
+     case List.Nil => ""
+   }
+
+   def reverse(): List[T] = this match {
+     case List.Cons(h, t) =>
+       @tailrec
+       def iterator(listToReverse: List[T], acc: List[T]): List[T] = listToReverse match {
+         case List.Cons(h, t) => iterator(t, h :: acc)
+         case List.Nil => acc
+       }
+       iterator(t, h :: List.Nil)
+
+     case List.Nil => this
+   }
+
+   def map[B](f: T => B): List[B] = this match {
+     case List.Cons(h, tail) => f(h) :: tail.map(f)
+     case List.Nil => List.Nil
+   }
+
+   def filter[B](f: T => Boolean): List[T] = this match {
+     case List.Cons(head, tail) =>
+       val filteredTail = tail.filter(f)
+       if( f(head) ) head :: filteredTail
+       else filteredTail
+
+     case List.Nil => this
+   }
+ }
+
+ object List {
+   case class Cons[+T](head: T, tail: List[T] ) extends List[T]
+   case object Nil extends List[Nothing]
+
+   def apply[T](args: T*): List[T] = {
+     @tailrec
+     def iterator(items: Seq[T], acc: List[T]): List[T] = {
+       if (items.isEmpty) acc
+       else iterator(items.tail, items.head :: acc)
+     }
+
+     iterator(args, List.Nil)
+   }
+
+   def incList(list: List[Int]): List[Int] = list match {
+     case Cons(head, tail) => 1 + head :: incList(tail)
+     case Nil => list
+   }
+
+   def shoutString(list: List[String]): List[String] = list match {
+     case Cons(head, tail) => '!' + head :: shoutString(tail)
+     case Nil => list
+   }
    /**
     *
     * Реализовать односвязанный иммутабельный список List
