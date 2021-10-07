@@ -1,6 +1,6 @@
 package module3
 
-import zio.{Has, Task, ULayer, URIO, ZIO, ZLayer}
+import zio.{Has, Schedule, Task, ULayer, URIO, ZIO, ZLayer}
 import zio.clock.{Clock, sleep}
 import zio.console._
 import zio.duration.durationInt
@@ -80,12 +80,17 @@ package object zio_homework {
    * 4.1 Создайте эффект, который будет возвращать случайеым образом выбранное число от 0 до 10 спустя 1 секунду
    * Используйте сервис zio Random
    */
-  lazy val eff = ???
+
+
+  lazy val eff: ZIO[Random with Clock, Nothing, Int] = for {
+    _ <- ZIO.sleep(1 seconds)
+    randomNum <- nextIntBetween(0, 10)
+  } yield randomNum
 
   /**
    * 4.2 Создайте коллукцию из 10 выше описанных эффектов (eff)
    */
-  lazy val effects = ???
+  lazy val effects: List[ZIO[Random with Clock, Nothing, Int]] = List.fill(10)(eff)
 
   
   /**
@@ -94,14 +99,20 @@ package object zio_homework {
    * можно использовать ф-цию printEffectRunningTime, которую мы разработали на занятиях
    */
 
-  lazy val app = ???
-
+  import zioConcurrency.printEffectRunningTime
+  lazy val app: ZIO[Clock with Console with Random, Nothing, Unit] = for {
+    list <- printEffectRunningTime(ZIO.collectAll(effects))
+    _    <- putStrLn(list.sum.toString)
+  } yield ()
 
   /**
    * 4.4 Усовершенствуйте программу 4.3 так, чтобы минимизировать время ее выполнения
    */
 
-  lazy val appSpeedUp = ???
+  lazy val appSpeedUp: ZIO[Clock with Console with Random, Nothing, Unit] = for {
+    list <- printEffectRunningTime(ZIO.collectAllPar(effects))
+    _    <- putStrLn(list.sum.toString)
+  } yield ()
 
 
   /**
