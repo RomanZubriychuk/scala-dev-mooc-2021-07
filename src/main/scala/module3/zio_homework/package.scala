@@ -1,7 +1,6 @@
 package module3
 
-import module3.zioConcurrency.printEffectRunningTime
-import zio.{Has, Task, ULayer, ZIO, ZLayer}
+import zio.{Has, Task, ULayer, URIO, ZIO, ZLayer}
 import zio.clock.{Clock, sleep}
 import zio.console._
 import zio.duration.durationInt
@@ -10,6 +9,7 @@ import zio.random._
 
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import scala.Console.println
 import scala.io.StdIn
 import scala.language.postfixOps
 
@@ -20,9 +20,33 @@ package object zio_homework {
    * и печатать в когнсоль угадал или нет. Подумайте, на какие наиболее простые эффекты ее можно декомпозировать.
    */
 
+  lazy val readInt: ZIO[Console, Throwable, Int] =
+    for {
+      input <- getStrLn
+      number <- ZIO.effect(input.toInt)
+    } yield number
+
+  lazy val readIntOrRetry: ZIO[Console, Nothing, Int] =
+    readInt <> (putStrLn("It's not an integer. Try again") *> readIntOrRetry)
+
+  def validateIntByRange(num: Int, range: Range): ZIO[Console, Nothing, Int] =
+    if (range contains num) ZIO.succeed(num)
+    else putStrLn("This range doesn't contain the num. Try again") *> readIntOrRetry
 
 
-  lazy val guessProgram = ???
+  def printResult(userNum: Int, randomNum: Int): URIO[Console, Unit] = {
+    if (userNum == randomNum) putStrLn("You are right")
+    else putStrLn("Nope, wrong")
+  }
+
+  lazy val guessProgram: ZIO[Random with Console, IOException, Unit] = for {
+    _ <- putStrLn("Type any number from 1 to 3")
+    userNumber <- readIntOrRetry
+    validUserNumber <- validateIntByRange(userNumber, 1 to 3)
+    randomNumber <- nextIntBetween(1, 3)
+    _ <- printResult(validUserNumber, randomNumber)
+  } yield ()
+
 
   /**
    * 2. реализовать функцию doWhile (общего назначения), которая будет выполнять эффект до тех пор, пока его значение в условии не даст true
