@@ -53,7 +53,12 @@ package object zio_homework {
    * 
    */
 
-  def doWhile = ???
+  def doWhile[R, E, A](effect: ZIO[R, E, A])(f: A => Boolean): ZIO[R, E, A] = {
+    effect.flatMap(k => {
+      if(f(k)) effect
+      else doWhile(effect)(f)
+    })
+  }
 
   /**
    * 3. Реализовать метод, который безопасно прочитает конфиг из файла, а в случае ошибки вернет дефолтный конфиг
