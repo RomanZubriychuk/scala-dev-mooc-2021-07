@@ -119,7 +119,7 @@ package object zio_homework {
    * 5. Оформите ф-цию printEffectRunningTime разработанную на занятиях в отдельный сервис, так чтобы ее
    * молжно было использовать аналогично zio.console.putStrLn например
    */
-
+    import runningTimeService._
 
    /**
      * 6.
@@ -128,13 +128,21 @@ package object zio_homework {
      * 
      */
 
-  lazy val appWithTimeLogg = ???
+  lazy val appWithTimeLogg: ZIO[RunningTimeService with Clock with Console with Random, Nothing, Unit] = for {
+    result <- RunningTimeService.printEffectRunningTime(app)
+  } yield result
 
   /**
     * 
     * Подготовьте его к запуску и затем запустите воспользовавшись ZioHomeWorkApp
     */
 
-  lazy val runApp = ???
+  val env = RunningTimeService.live ++ Console.live ++ Random.live ++ Clock.live
+  lazy val runApp = appWithTimeLogg.provideLayer(env)
   
+}
+
+object Test extends App {
+  import zio_homework._
+  zio.Runtime.default.unsafeRun(runApp)
 }
