@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit
 import scala.Console.println
 import scala.io.StdIn
 import scala.language.postfixOps
+import zio_homework.config.AppConfig
 
 package object zio_homework {
   /**
@@ -66,7 +67,7 @@ package object zio_homework {
    * Используйте эффект "load" из пакета config
    */
 
-  def loadConfigOrDefault = ???
+  def loadConfigOrDefault: ZIO[Any, Nothing, AppConfig] = config.load <> ZIO.succeed(AppConfig("default", "default"))
 
 
   /**
